@@ -1,0 +1,22 @@
+# Compiled object files
+*.o
+
+# Executables
+mdriver
+
+# Backup files
+*~
+*.bak
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build artifacts
+*.a
+*.so
