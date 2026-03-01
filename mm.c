@@ -131,18 +131,21 @@ static void *extend_heap(size_t words)
     size = (words % 2) ? (words + 1) * WSIZE : words * WSIZE;
 
     /* Step 2: Request more memory from the OS */
-    // bp= block pointer, pointes to the start of the payload
+    // bp= block pointer, pointes to the start of the payload, not the entire block
     if ((bp = mem_sbrk(size)) == (void *)-1)
         return NULL;
+
+    // write new header and footer
     PUT(HDRP(bp), PACK(size, 0));
     PUT(FTRP(bp), PACK(size, 0));
 
-    // do step 4 and 5 here
+    // write new epilogue
     PUT(HDRP(NEXT_BLKP(bp)), PACK(0, 1));
     return coalesce(bp);
 };
 /*
  * mm_init - initialize the malloc package.
+ padding, prol header, prol footer, epilogue header
  */
 int mm_init(void)
 {
@@ -168,7 +171,7 @@ void *mm_malloc(size_t size)
     if (size == 0)
         return NULL;
 
-        if (size <= DSIZE)
+    if (size <= DSIZE)
         adjusted_block_size = 2 * DSIZE;
     else
         adjusted_block_size = DSIZE * ((size + DSIZE + (DSIZE - 1)) / DSIZE);
@@ -197,6 +200,7 @@ void *mm_malloc(size_t size)
         return best_fit;
     }
 
+    // if not best fit we need to extend the heap
     size_t extend_size = MAX(adjusted_block_size, CHUNKSIZE);
     if ((bp = extend_heap(extend_size / WSIZE)) == NULL)
         return NULL;
